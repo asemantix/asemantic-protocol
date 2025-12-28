@@ -26,26 +26,85 @@ Proof of Concept Python implementation of the asemantic fragment validation prot
 - **Forward secrecy** via KDF seed evolution
 
 ## How it works
+
+### Protocol Overview
+
 ```mermaid
 flowchart LR
-    subgraph Emitter
-        S[Content S] --> R[R: Canonicalize]
-        R --> C[C = R(S)]
-        C --> F[F = Trunc(HMAC)]
-        K0[Seed K₀] --> F
-        K0 --> KDF[KDF]
-        KDF --> K1[Seed K₁]
+    subgraph EMIT[EMITTER]
+        S[State S] --> C[Content C]
+        C --> ENC[Encode]
+        K[Seed Ki] --> ENC
+        ENC --> HMAC[HMAC-SHA256]
+        K --> HMAC
+        HMAC --> Fi[Fragment Fi]
+        K --> KDF[KDF]
+        KDF --> Kn[Next Seed]
     end
     
-    F -->|Fragment only| Channel((Raw Channel))
+    Fi -->|Fragment only - no metadata| CH((RAW CHANNEL))
     
-    subgraph Receiver
-        Channel --> V{Validate}
-        V -->|j ∈ [t,t+ν]| Compare[Compare F = F̂ⱼ ?]
-        Compare -->|Match| Accept[✅ ACCEPT]
-        Compare -->|No match| Reject[❌ REJECT]
-        Accept --> Advance[Anchor t ← j+1]
+    subgraph RECV[RECEIVER]
+        CH --> Frx[Received Frx]
+        Frx --> LOOP{Window t to t+v}
+        LOOP --> CMP[Recompute and Compare]
+        CMP -->|Match| OK[ACCEPT]
+        CMP -->|No match| NO[REJECT]
+        OK --> ADV[Anchor t = j+1]
     end
+```
+
+### Validation Rule
+
+```
+ACCEPT(Frx) if and only if: exists j in [t, t+v] where Frx == Fj
+
+Where:
+  - t = Current anchor (monotonic)
+  - v = Window size (default: 7)
+  - Fj = Recomputed fragment at index j
+```
+
+### Anti-Replay Protection
+
+```mermaid
+flowchart LR
+    subgraph T0[Step 1: t=0]
+        W0[Window: 0-7]
+    end
+    
+    subgraph T1[Step 2: t=1]
+        W1[Window: 1-8]
+    end
+    
+    subgraph T2[Step 3: t=2]
+        W2[Window: 2-9]
+    end
+    
+    F0a[F0 sent] -->|ACCEPT| T0
+    T0 -->|anchor moves| T1
+    F1[F1 sent] -->|ACCEPT| T1
+    T1 -->|anchor moves| T2
+    F0b[F0 replayed] -->|REJECT - outside window| T2
+```
+
+### Fragment is Indistinguishable from Noise
+
+```mermaid
+flowchart TB
+    subgraph INPUT[Inputs - NOT transmitted]
+        D[Domain 128 bits]
+        C[Content]
+        K[Seed 256 bits]
+    end
+    
+    INPUT --> CRYPTO[Cryptographic Function]
+    CRYPTO --> OUTPUT[Fragment: 256 bits]
+    OUTPUT --> TEST{NIST SP 800-22}
+    TEST -->|All tests| PASS[100% PASS]
+    
+    style OUTPUT fill:#d4af37,color:#000
+    style PASS fill:#22c55e,color:#000
 ```
 
 ## Run in Google Colab
