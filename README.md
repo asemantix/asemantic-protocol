@@ -11,8 +11,6 @@
 
 **[Install](#install) • [Demo](#demo) • [Run in Colab](#run-in-google-colab) • [Documentation](https://asemantix.tech)**
 
----
-
 ## What is this?
 
 Proof of Concept Python implementation of the asemantic fragment validation protocol described in the patent:
