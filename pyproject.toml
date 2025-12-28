@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asemantic-protocol"
+version = "0.1.0"
+description = "Asemantic Fragment Validation Protocol - Proof of Concept"
+authors = [
+    {name = "ASEMANTIX", email = "ASEMANTIX@proton.me"}
+]
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "Proprietary - All rights reserved"}
+dependencies = []
+
+[project.urls]
+Homepage = "https://asemantix.tech"
+Source = "https://github.com/asemantix/asemantic-protocol"
