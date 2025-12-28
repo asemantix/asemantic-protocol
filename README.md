@@ -27,27 +27,26 @@ Proof of Concept Python implementation of the asemantic fragment validation prot
 
 ## Protocol overview
 
-```mermaid
-sequenceDiagram
-    participant Tx as Émetteur (Tx)
-    participant Ch as Canal brut hétérogène
-    participant Rx as Récepteur (Rx)
+Émetteur (Tx) :
+- Entrées locales : secret partagé S, ancre monotone A_t, fenêtre [t, t+ν], domain
+- Calcule R := PRF(S, A_t, domain, …)
+- Calcule F_t := Tronc_ℓ(R)
+- Envoie uniquement F_t sur un canal brut hétérogène (sans index, ni timestamp, ni ID, ni MAC)
 
-    Tx->>Tx: Secret partagé S, ancre monotone A_t, domain, fenêtre [t, t+ν]
-    Tx->>Tx: R := PRF(S, A_t, domain, …)
-    Tx->>Ch: F_t := Tronc_ℓ(R)\n(F_t indistinguable du bruit,\naucune métadonnée transmise)
-    Ch-->>Rx: F_t (mélangé au bruit et à d'autres fragments)
+Canal brut :
+- Mélange de bruit et de fragments asémantiques
+- Aucune structure imposée
 
-    Rx->>Rx: Sélectionne un candidat F_t dans le flux brut
-    loop Fenêtre locale bornée [t, t+ν]
-        Rx->>Rx: Pour chaque A_i : R_i := PRF(S, A_i, domain, …)
-        Rx->>Rx: F_i* := Tronc_ℓ(R_i)
-        alt F_i* == F_t
-            Rx->>Rx: Validation locale du fragment\nMise à jour monotone de l'ancre (anti‑rejeu)
-        else
-            Rx->>Rx: Poursuite du balayage ou rejet à l'issue de la fenêtre
-        end
-    end
+Récepteur (Rx) :
+- Récupère un candidat F_t dans le flux brut
+- Balaye une fenêtre locale bornée [t, t+ν] sur les ancres A_i
+- Pour chaque A_i :
+  - R_i := PRF(S, A_i, domain, …)
+  - F_i* := Tronc_ℓ(R_i)
+  - Si F_i* == F_t :
+    - Validation locale du fragment
+    - Mise à jour monotone de l’ancre (anti-rejeu)
+  - Sinon : poursuit le balayage ou rejette à l’issue de la fenêtre
 
 ## Run in Google Colab
 
