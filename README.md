@@ -1,6 +1,7 @@
 # ASEMANTIX™ — Asemantic Protocol PoC
 
-[▶ Try the PoC in Colab](#try-the-poc-in-colab) · [⬇ Install locally](#install) · [▶ Run the demo](#demo)
+[▶ Try the PoC in Colab](#try-the-poc-in-colab) • [⬇ Install locally](#install) • [▶ Run the demo](#demo)
+
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/asemantix/asemantic-protocol/blob/main/ASEMANTIX_PoC_Demo.ipynb)
 
 **The First Asemantic Protocol on Raw Heterogeneous Channels**
