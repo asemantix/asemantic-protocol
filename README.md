@@ -25,28 +25,28 @@ Proof of Concept Python implementation of the asemantic fragment validation prot
 - **Anti-replay** via monotonic anchor
 - **Forward secrecy** via KDF seed evolution
 
-## Protocol overview
-
-Émetteur (Tx) :
-- Entrées locales : secret partagé S, ancre monotone A_t, fenêtre [t, t+ν], domain
-- Calcule R := PRF(S, A_t, domain, …)
-- Calcule F_t := Tronc_ℓ(R)
-- Envoie uniquement F_t sur un canal brut hétérogène (sans index, ni timestamp, ni ID, ni MAC)
-
-Canal brut :
-- Mélange de bruit et de fragments asémantiques
-- Aucune structure imposée
-
-Récepteur (Rx) :
-- Récupère un candidat F_t dans le flux brut
-- Balaye une fenêtre locale bornée [t, t+ν] sur les ancres A_i
-- Pour chaque A_i :
-  - R_i := PRF(S, A_i, domain, …)
-  - F_i* := Tronc_ℓ(R_i)
-  - Si F_i* == F_t :
-    - Validation locale du fragment
-    - Mise à jour monotone de l’ancre (anti-rejeu)
-  - Sinon : poursuit le balayage ou rejette à l’issue de la fenêtre
+## How it works
+```mermaid
+flowchart LR
+    subgraph Emitter
+        S[Content S] --> R[R: Canonicalize]
+        R --> C[C = R(S)]
+        C --> F[F = Trunc(HMAC)]
+        K0[Seed K₀] --> F
+        K0 --> KDF[KDF]
+        KDF --> K1[Seed K₁]
+    end
+    
+    F -->|Fragment only| Channel((Raw Channel))
+    
+    subgraph Receiver
+        Channel --> V{Validate}
+        V -->|j ∈ [t,t+ν]| Compare[Compare F = F̂ⱼ ?]
+        Compare -->|Match| Accept[✅ ACCEPT]
+        Compare -->|No match| Reject[❌ REJECT]
+        Accept --> Advance[Anchor t ← j+1]
+    end
+```
 
 ## Run in Google Colab
 
