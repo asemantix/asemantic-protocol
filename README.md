@@ -25,7 +25,29 @@ Proof of Concept Python implementation of the asemantic fragment validation prot
 - **Anti-replay** via monotonic anchor
 - **Forward secrecy** via KDF seed evolution
 
----
+## Protocol overview
+
+```mermaid
+sequenceDiagram
+    participant Tx as Émetteur (Tx)
+    participant Ch as Canal brut hétérogène
+    participant Rx as Récepteur (Rx)
+
+    Tx->>Tx: Secret partagé S, ancre monotone A_t, domain, fenêtre [t, t+ν]
+    Tx->>Tx: R := PRF(S, A_t, domain, …)
+    Tx->>Ch: F_t := Tronc_ℓ(R)\n(F_t indistinguable du bruit,\naucune métadonnée transmise)
+    Ch-->>Rx: F_t (mélangé au bruit et à d'autres fragments)
+
+    Rx->>Rx: Sélectionne un candidat F_t dans le flux brut
+    loop Fenêtre locale bornée [t, t+ν]
+        Rx->>Rx: Pour chaque A_i : R_i := PRF(S, A_i, domain, …)
+        Rx->>Rx: F_i* := Tronc_ℓ(R_i)
+        alt F_i* == F_t
+            Rx->>Rx: Validation locale du fragment\nMise à jour monotone de l'ancre (anti‑rejeu)
+        else
+            Rx->>Rx: Poursuite du balayage ou rejet à l'issue de la fenêtre
+        end
+    end
 
 ## Run in Google Colab
 
